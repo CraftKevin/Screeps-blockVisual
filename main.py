@@ -12,12 +12,12 @@ import re
 
 # 正则判断是否为数字
 def is_number(num):
-  pattern = re.compile(r'^[-+]?[-0-9]\d*\.\d*|[-+]?\.?[0-9]\d*$')
-  result = pattern.match(num)
-  if result:
-    return True
-  else:
-    return False
+	pattern = re.compile(r'^[-+]?[-0-9]\d*\.\d*|[-+]?\.?[0-9]\d*$')
+	result = pattern.match(num)
+	if result:
+		return True
+	else:
+		return False
 
 # 命令行提示
 def help(e):
@@ -88,7 +88,8 @@ if __name__=="__main__":
 	with open('config.json','r')as f:
 		rawConfig=f.read()
 		f.close()
-	config=json.loads(rawConfig)
+	try:
+			config=json.loads(rawConfig)
 	token=config['token']
 	# 获取传入命令行参数
 	try:
@@ -99,7 +100,7 @@ if __name__=="__main__":
 		if len(roomName)!=6 or (not checkRoomName(roomName)):
 			raise RuntimeError('Wrong room name')
 	except Exception as e:
-		help(e)
+			help(e)
 		
 	# 命令行参数检查完成,
 	ws = create_connection('wss://screeps.com/socket/133/qwerasdf/websocket')
@@ -109,7 +110,7 @@ if __name__=="__main__":
 	time.sleep(0.5)
 
 	#Default Token
-	
+
 	#getToken()
 
 
@@ -128,7 +129,7 @@ if __name__=="__main__":
 	try:
 		if data[7:data.index(',')-1]!=shard+'/'+roomName:
 			data=ws.recv()
-			data=data[3:-2].replace('\\\\\\"','"').replace('\\\\"','"').replace('\\"','"')
+		data=data[3:-2].replace('\\\\\\"','"').replace('\\\\"','"').replace('\\"','"')
 	except:
 		pass
 		#print(data)
@@ -162,18 +163,18 @@ if __name__=="__main__":
 			if roomTerrain['ok']==1:
 				for terrain in roomTerrain['terrain']:
 					if terrain['type']=='wall' or terrain['type']=='swamp':
-						x=terrain['x']*16
-						y=terrain['y']*16
-						terrain_image=Image.open(res_dir+terrain['type']+".png").convert("RGBA")
-						bg.paste(terrain_image,(x,y,x+16,y+16))
-					if terrain['x']==0:
-						wall_list['left'].append(terrain['y'])
-					if terrain['x']==49:
-						wall_list['right'].append(terrain['y'])
-					if terrain['y']==0:
-						wall_list['up'].append(terrain['x'])
-					if terrain['y']==49:
-						wall_list['down'].append(terrain['x'])
+							x=terrain['x']*16
+							y=terrain['y']*16
+							terrain_image=Image.open(res_dir+terrain['type']+".png").convert("RGBA")
+							bg.paste(terrain_image,(x,y,x+16,y+16))
+							if terrain['x']==0:
+								wall_list['left'].append(terrain['y'])
+							if terrain['x']==49:
+								wall_list['right'].append(terrain['y'])
+							if terrain['y']==0:
+								wall_list['up'].append(terrain['x'])
+							if terrain['y']==49:
+								wall_list['down'].append(terrain['x'])
 
 		for direction in wall_list:
 			if direction=='up':
@@ -220,6 +221,16 @@ if __name__=="__main__":
 				tmp.alpha_composite(structure_image)
 				bg.paste(tmp,(x,y,x+16,y+16))
 				continue
+			if structure=='controller':
+				if obj['level']:
+					size=16
+					real_size=22
+					frame_size=real_size-size
+					tmp = bg.crop((x-frame_size//2,y-frame_size//2,x+16+frame_size//2,y+16+frame_size//2)).convert('RGBA')
+					structure_image=Image.open(res_dir+'rcl'+str(obj['level'])+".png").convert("RGBA")
+					tmp.alpha_composite(structure_image)
+					bg.paste(tmp,(x-frame_size//2,y-frame_size//2,x+16+frame_size//2,y+16+frame_size//2))
+					continue
 			if structure=='powerSpawn' or structure=='factory':
 				size=16
 				real_size=22
