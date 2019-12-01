@@ -89,7 +89,9 @@ if __name__=="__main__":
 		rawConfig=f.read()
 		f.close()
 	try:
-			config=json.loads(rawConfig)
+		config=json.loads(rawConfig)
+	except:
+		sys.exit('Can\'t resolve config.json')
 	token=config['token']
 	# 获取传入命令行参数
 	try:
@@ -108,8 +110,6 @@ if __name__=="__main__":
 		print("Debug:",ws.recv()[1:])
 	print('Login...')
 	time.sleep(0.5)
-
-	#Default Token
 
 	#getToken()
 
