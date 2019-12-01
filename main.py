@@ -262,19 +262,35 @@ if __name__=="__main__":
 				roads[obj['x']][obj['y']] = 1
 		#路连接列表
 		connections = [] #格式：x， y， 方向
-		for x in range(0, 50): 
-			for y in range(0, 50): 
+		for x in range(1, 50): 
+			for y in range(1, 50): 
 				if roads[x][y] == 1:
 					if roads[x + 1][y] == 1:
-						connections.append(x, y, 'right')
+						connections.append((x, y, 'right'))
 					if roads[x + 1][y + 1] == 1: 
-						connections.append(x, y, 'right_down')
-					if roads[x][y + 1] == 1:' 
-						connections.append(x, y, 'down')
+						connections.append((x, y, 'right_down'))
+					if roads[x][y + 1] == 1:
+						connections.append((x, y, 'down'))
 					if roads[x - 1][y + 1]  == 1: 
-						connections.append(x, y, 'left_down')
+						connections.append((x, y, 'left_down'))
+					if roads[x - 1][y] == 1:
+						connections.append((x, y, 'left'))
+					if roads[x - 1][y - 1]  == 1: 
+						connections.append((x, y, 'left_up'))
+					if roads[x][y - 1]  == 1: 
+						connections.append((x, y, 'up'))
+					if roads[x + 1][y - 1]  == 1: 
+						connections.append((x, y, 'right_up'))
 			
-		
+		for road in connections:
+			x=road[0]*16
+			y=road[1]*16
+			if 'road_'+str(road[2])+".png" not in names:
+				continue
+			tmp = tmp = bg.crop((x,y,x+16,y+16)).convert('RGBA')
+			structure_image=Image.open(res_dir+'road_'+str(road[2])+".png").convert("RGBA")
+			tmp.alpha_composite(structure_image)
+			bg.paste(tmp,(x,y,x+16,y+16))
 		for obj in data['objects'].values():
 			if 'x' not in obj:
 				continue
@@ -285,6 +301,8 @@ if __name__=="__main__":
 			structure=obj['type']
 			x=obj['x']*16
 			y=obj['y']*16
+			if structure=='road':
+				continue
 			if structure=='rampart':
 				rampart_list.append((x,y))
 				continue
