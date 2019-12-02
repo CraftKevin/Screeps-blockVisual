@@ -273,14 +273,14 @@ if __name__=="__main__":
 						connections.append((x, y, 'down'))
 					if roads[x - 1][y + 1]  == 1: 
 						connections.append((x, y, 'left_down'))
-					if roads[x - 1][y] == 1:
-						connections.append((x, y, 'left'))
-					if roads[x - 1][y - 1]  == 1: 
-						connections.append((x, y, 'left_up'))
-					if roads[x][y - 1]  == 1: 
-						connections.append((x, y, 'up'))
-					if roads[x + 1][y - 1]  == 1: 
-						connections.append((x, y, 'right_up'))
+					#if roads[x - 1][y] == 1:
+						#connections.append((x, y, 'left'))
+					#if roads[x - 1][y - 1]  == 1: 
+						#connections.append((x, y, 'left_up'))
+					#if roads[x][y - 1]  == 1: 
+						#connections.append((x, y, 'up'))
+					#if roads[x + 1][y - 1]  == 1: 
+						#connections.append((x, y, 'right_up'))
 			
 		for road in connections:
 			x=road[0]*16
@@ -290,7 +290,7 @@ if __name__=="__main__":
 			tmp = tmp = bg.crop((x,y,x+16,y+16)).convert('RGBA')
 			structure_image=Image.open(res_dir+'road_'+str(road[2])+".png").convert("RGBA")
 			tmp.alpha_composite(structure_image)
-			bg.paste(tmp,(x,y,x+16,y+16))
+			bg.paste(tmp,(x + 8, y + 8, x + 24, y + 24))
 		for obj in data['objects'].values():
 			if 'x' not in obj:
 				continue
