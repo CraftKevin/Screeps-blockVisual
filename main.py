@@ -273,24 +273,30 @@ if __name__=="__main__":
 						connections.append((x, y, 'down'))
 					if roads[x - 1][y + 1]  == 1: 
 						connections.append((x, y, 'left_down'))
-					if roads[x - 1][y] == 1:
-						connections.append((x, y, 'left'))
-					if roads[x - 1][y - 1]  == 1: 
-						connections.append((x, y, 'left_up'))
-					if roads[x][y - 1]  == 1: 
-						connections.append((x, y, 'up'))
-					if roads[x + 1][y - 1]  == 1: 
-						connections.append((x, y, 'right_up'))
+					#if roads[x - 1][y] == 1:
+						#connections.append((x, y, 'left'))
+					#if roads[x - 1][y - 1]  == 1: 
+						#connections.append((x, y, 'left_up'))
+					#if roads[x][y - 1]  == 1: 
+						#connections.append((x, y, 'up'))
+					#if roads[x + 1][y - 1]  == 1: 
+						#connections.append((x, y, 'right_up'))
 			
 		for road in connections:
 			x=road[0]*16
 			y=road[1]*16
 			if 'road_'+str(road[2])+".png" not in names:
 				continue
-			tmp = tmp = bg.crop((x,y,x+16,y+16)).convert('RGBA')
+                        if str(road[2]) == 'left_down':
+                                x -= 16
+                        if str(road[2]) == 'down':
+                                x -= 8
+                        if str(road[2]) == 'right':
+                                y -= 8
+			tmp = tmp = bg.crop((x + 8, y + 8, x + 24,y + 24)).convert('RGBA')
 			structure_image=Image.open(res_dir+'road_'+str(road[2])+".png").convert("RGBA")
 			tmp.alpha_composite(structure_image)
-			bg.paste(tmp,(x,y,x+16,y+16))
+			bg.paste(tmp,(x+8,y+8,x+24,y+24))
 		for obj in data['objects'].values():
 			if 'x' not in obj:
 				continue
