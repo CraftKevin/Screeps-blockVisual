@@ -152,7 +152,7 @@ except:
     print('Failed')
 else:
     # Render!
-    res_dir = "./img/"
+    res_dir = "./imgs/"
     pixs = 16
     bg = Image.open(res_dir+'bg.png').convert("RGBA")
     rampart_list = []
@@ -273,6 +273,18 @@ else:
             tmp.alpha_composite(structure_image)
             bg.paste(tmp, (x, y, x+pixs, y+pixs))
             continue
+        if structure=='controller':
+            if obj['level']:
+                size = pixs
+                real_size=22
+                frame_size=real_size-size
+                tmp = bg.crop((x-frame_size//2,y-frame_size//2,x+
+                               16+frame_size//2,y+16+frame_size//2)).convert('RGBA')
+                structure_image=Image.open(res_dir+'rcl'+str(obj['level'])+".png").convert("RGBA")
+                tmp.alpha_composite(structure_image)
+                bg.paste(tmp,(x-frame_size//2,y-frame_size//2,
+                         x+16+frame_size//2,y+16+frame_size//2))
+                continue
         if structure == 'powerSpawn' or structure == 'factory':
             size = pixs
             real_size = 22
@@ -286,8 +298,6 @@ else:
                            x+pixs+frame_size//2, y+pixs+frame_size//2))
             continue
         if structure == 'road':
-            print(str(obj['x'])+' '+str(obj['y']))
-            #print(road)
             road[obj['x']][obj['y']] = 1
             structure_img = Image.open(
                 res_dir+structure+"_dot.png").convert('RGBA')
@@ -316,13 +326,10 @@ else:
         bg.paste(structure_image,
                  (x-structure_image.size[0]+pixs, y-structure_image.size[1]+pixs, x+pixs, y+pixs))
     
-    res_dir = './img/16x/'
-
-    #print(road)
+    res_dir = './imgs/16x/'
 
     for x in range(1,49):
         for y in range(1,49):
-            print(str(road[x][y])+' ',end='')
             if road[x][y] == 1:
                 if road[x - 1][y + 1] == 1:
                     connection = Image.open(res_dir+'road_EN-WS.png').convert('RGBA')
@@ -360,9 +367,8 @@ else:
                     tmp = bg.crop((pix_x, pix_y, pix_x + pixs, pix_y + pixs)).convert('RGBA')
                     tmp.alpha_composite(connection)
                     bg.paste(tmp, (pix_x, pix_y, pix_x + pixs, pix_y + pixs))
-        print()
 
-    res_dir = './img/'
+    res_dir = './imgs/'
 
     for pos in rampart_list:
         tmp = bg.crop((pos[0], pos[1], pos[0]+pixs,
