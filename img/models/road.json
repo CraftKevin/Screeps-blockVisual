@@ -1,0 +1,19 @@
+{
+    "textures": {
+        "dot": "road_dot.png"
+    },
+    "faces": [
+        {
+            "from": [
+                0,
+                0
+            ],
+            "to": [
+                16,
+                16
+            ],
+            "texture": "#dot",
+            "uv":[0, 0, 16, 16]
+        }
+    ]
+}

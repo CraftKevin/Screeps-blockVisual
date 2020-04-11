@@ -111,251 +111,197 @@ if __name__=="__main__":
 	print('Login...')
 	time.sleep(0.5)
 
-	#getToken()
+# Default Token
+token = '[Your-Token]'
+# getToken()
 
 
-	ws.send('["auth '+token+'"]')
-	if ws.recv()[3:10]=='auth ok':
-		print('Token verify successfully')
-	else:
-		print('Wrong token')
-		sys.exit()
+ws.send('["auth '+token+'"]')
+if ws.recv()[3:10] == 'auth ok':
+    print('Token verify successfully')
+else:
+    print('Wrong token')
+    sys.exit()
 
-	print('Loading data...')
-	data=''
-	ws.send('"subscribe room:'+shard+'/'+roomName+'"')
-	data=ws.recv()
-	data=data[3:-2].replace('\\\\\\"','"').replace('\\\\"','"').replace('\\"','"')
-	try:
-		if data[7:data.index(',')-1]!=shard+'/'+roomName:
-			data=ws.recv()
-		data=data[3:-2].replace('\\\\\\"','"').replace('\\\\"','"').replace('\\"','"')
-	except:
-		pass
-		#print(data)
-	try:
-		data=data[:data.index(',"users"')]+'}'
-	except:
-		pass
-	try:
-		data=data[:data.index(',"visual"')]+'}'
-	except:
-		pass
-	data=data[data.index(',')+1:]
-	if data[-1]==']':
-		data=data[:-1]
-	if data[-1]!='}':
-		data+='}'
-	try:
-		data=json.loads(data)
-	except:
-		print(data)
-		print('Failed')
-	else:
-		#print(data)
-		res_dir = "./img/"
-		bg = Image.open(res_dir+'bg.png').convert("RGBA")
-		rampart_list=[]
-		wall_list={'up':[],'down':[],'left':[],'right':[]}
-		files,names=getRawFileList(res_dir)
-		roomTerrain=getTerrain(shard,roomName)
-		if 'ok' in roomTerrain:
-			if roomTerrain['ok']==1:
-				for terrain in roomTerrain['terrain']:
-					if terrain['type']=='wall' or terrain['type']=='swamp':
-							x=terrain['x']*16
-							y=terrain['y']*16
-							terrain_image=Image.open(res_dir+terrain['type']+".png").convert("RGBA")
-							bg.paste(terrain_image,(x,y,x+16,y+16))
-							if terrain['x']==0:
-								wall_list['left'].append(terrain['y'])
-							if terrain['x']==49:
-								wall_list['right'].append(terrain['y'])
-							if terrain['y']==0:
-								wall_list['up'].append(terrain['x'])
-							if terrain['y']==49:
-								wall_list['down'].append(terrain['x'])
+print('Loading data...')
+data = ''
+ws.send('"subscribe room:'+shard+'/'+roomName+'"')
+data = ws.recv()
+data = data[3:-2].replace('\\\\\\"', '"').replace('\\\\"',
+                                                  '"').replace('\\"', '"')
+try:
+    if data[7:data.index(',')-1] != shard+'/'+roomName:
+        data = ws.recv()
+        data = data[3:-2].replace('\\\\\\"',
+                                  '"').replace('\\\\"', '"').replace('\\"', '"')
+except:
+    pass
+    # print(data)
+try:
+    data = data[:data.index(',"users"')]+'}'
+except:
+    pass
+try:
+    data = data[:data.index(',"visual"')]+'}'
+except:
+    pass
+data = data[data.index(',')+1:]
+if data[-1] == ']':
+    data = data[:-1]
+if data[-1] != '}':
+    data += '}'
+try:
+    data = json.loads(data)
+except:
+    print(data)
+    print('Failed')
+else:
+    # Render!
+    res_dir = "./img/"
+    pixs = 16
+    bg = Image.open(res_dir+'bg.png').convert("RGBA")
+    rampart_list = []
+    wall_list = {'up': [], 'down': [], 'left': [], 'right': []}
+    files, names = getRawFileList(res_dir)
+    roomTerrain = getTerrain(shard, roomName)
+    road = [[0]*50]*50
+    if 'ok' in roomTerrain:
+        if roomTerrain['ok'] == 1:
+            for terrain in roomTerrain['terrain']:
+                if terrain['type'] == 'wall' or terrain['type'] == 'swamp':
+                    x = terrain['x']*pixs
+                    y = terrain['y']*pixs
+                    terrain_image = Image.open(
+                        res_dir+terrain['type']+".png").convert("RGBA")
+                    bg.paste(terrain_image, (x, y, x+pixs, y+pixs))
+                if terrain['x'] == 0:
+                    wall_list['left'].append(terrain['y'])
+                if terrain['x'] == 49:
+                    wall_list['right'].append(terrain['y'])
+                if terrain['y'] == 0:
+                    wall_list['up'].append(terrain['x'])
+                if terrain['y'] == 49:
+                    wall_list['down'].append(terrain['x'])
 
-		for direction in wall_list:
-			if direction=='up':
-				up=Image.open(res_dir+'up.png').convert('RGBA')
-				for i in range(49):
-					if i not in wall_list[direction]:
-						bg.paste(up,(i*16,0,i*16+16,16))
-			if direction=='down':
-				down=Image.open(res_dir+'down.png').convert('RGBA')
-				for i in range(49):
-					if i not in wall_list[direction]:
-						bg.paste(down,(i*16,49*16,i*16+16,50*16))
-			if direction=='left':
-				left=Image.open(res_dir+'left.png').convert('RGBA')
-				for i in range(49):
-					if i not in wall_list[direction]:
-						bg.paste(left,(0,i*16,16,i*16+16))
-			if direction=='right':
-				right=Image.open(res_dir+'right.png').convert('RGBA')
-				for i in range(49):
-					if i not in wall_list[direction]:
-						bg.paste(right,(49*16,i*16,50*16,i*16+16))
-		
-		#连路函数
-		roads = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-		#路列表
-		for obj in data['objects'].values(): 
-			if 'x' not in obj: 
-				continue
-			if 'y' not in obj: 
-				continue
-			if 'type' not in obj: 
-				continue
-			structureType = obj['type']
-			if structureType == 'road': 
-				roads[obj['x']][obj['y']] = 1
-		#路连接列表
-		connections = [] #格式：x， y， 方向
-		for x in range(1, 50): 
-			for y in range(1, 50): 
-				if roads[x][y] == 1:
-					if roads[x + 1][y] == 1:
-						connections.append((x, y, 'right'))
-					if roads[x + 1][y + 1] == 1: 
-						connections.append((x, y, 'right_down'))
-					if roads[x][y + 1] == 1:
-						connections.append((x, y, 'down'))
-					if roads[x - 1][y + 1]  == 1: 
-						connections.append((x, y, 'left_down'))
-					if roads[x - 1][y] == 1:
-						connections.append((x, y, 'left'))
-					if roads[x - 1][y - 1]  == 1: 
-						connections.append((x, y, 'left_up'))
-					if roads[x][y - 1]  == 1: 
-						connections.append((x, y, 'up'))
-					if roads[x + 1][y - 1]  == 1: 
-						connections.append((x, y, 'right_up'))
-			
-		for road in connections:
-			x=road[0]*16
-			y=road[1]*16
-			if 'road_'+str(road[2])+".png" not in names:
-				continue
-			tmp = tmp = bg.crop((x,y,x+16,y+16)).convert('RGBA')
-			structure_image=Image.open(res_dir+'road_'+str(road[2])+".png").convert("RGBA")
-			tmp.alpha_composite(structure_image)
-			bg.paste(tmp,(x,y,x+16,y+16))
-		for obj in data['objects'].values():
-			if 'x' not in obj:
-				continue
-			if 'y' not in obj:
-				continue
-			if 'type' not in obj:
-				continue
-			structure=obj['type']
-			x=obj['x']*16
-			y=obj['y']*16
-			if structure=='road':
-				continue
-			if structure=='rampart':
-				rampart_list.append((x,y))
-				continue
-			if structure=='extension':
-				tmp = bg.crop((x,y,x+16,y+16)).convert('RGBA')
-				if obj['store']['energy']<obj['storeCapacityResource']['energy']/3:
-					structure_image=Image.open(res_dir+structure+"_empty.png").convert("RGBA")
-				else:
-					structure_image=Image.open(res_dir+structure+".png").convert("RGBA")
-				tmp.alpha_composite(structure_image)
-				bg.paste(tmp,(x,y,x+16,y+16))
-				continue
-			if structure=='controller':
-				if obj['level']:
-					size=16
-					real_size=22
-					frame_size=real_size-size
-					tmp = bg.crop((x-frame_size//2,y-frame_size//2,x+16+frame_size//2,y+16+frame_size//2)).convert('RGBA')
-					structure_image=Image.open(res_dir+'rcl'+str(obj['level'])+".png").convert("RGBA")
-					tmp.alpha_composite(structure_image)
-					bg.paste(tmp,(x-frame_size//2,y-frame_size//2,x+16+frame_size//2,y+16+frame_size//2))
-					continue
-			if structure=='powerSpawn' or structure=='factory':
-				size=16
-				real_size=22
-				frame_size=real_size-size
-				tmp = bg.crop((x-frame_size//2,y-frame_size//2,x+16+frame_size//2,y+16+frame_size//2)).convert('RGBA')
-				structure_image=Image.open(res_dir+structure+".png").convert("RGBA")
-				tmp.alpha_composite(structure_image)
-				bg.paste(tmp,(x-frame_size//2,y-frame_size//2,x+16+frame_size//2,y+16+frame_size//2))
-				continue
-			if structure=='mineral':
-				structure_image=Image.open(res_dir+obj['mineralType']+".png").convert("RGBA")
-			else:
-				if structure+'.png' not in names:
-					continue
-				if (structure=='tower' or structure=='link') and obj['store']['energy']<obj['storeCapacityResource']['energy']/3:
-					structure_image=Image.open(res_dir+structure+"_empty.png").convert("RGBA")
-				elif structure=='nuker' and (obj['store']['energy']<270000 or obj['store']['G']<4500):
-					structure_image=Image.open(res_dir+structure+"_empty.png").convert("RGBA")
-				elif structure=='source' and obj['energy']==0:
-					structure_image=Image.open(res_dir+structure+"_empty.png").convert("RGBA")
-				else:
-					structure_image=Image.open(res_dir+structure+".png").convert("RGBA")
-			bg.paste(structure_image,(x-structure_image.size[0]+16,y-structure_image.size[1]+16,x+16,y+16))
+    for direction in wall_list:
+        if direction == 'up':
+            up = Image.open(res_dir+'up.png').convert('RGBA')
+            for i in range(49):
+                if i not in wall_list[direction]:
+                    bg.paste(up, (i*pixs, 0, i*pixs+pixs, pixs))
+        if direction == 'down':
+            down = Image.open(res_dir+'down.png').convert('RGBA')
+            for i in range(49):
+                if i not in wall_list[direction]:
+                    bg.paste(down, (i*pixs, 49*pixs, i*pixs+pixs, 50*pixs))
+        if direction == 'left':
+            left = Image.open(res_dir+'left.png').convert('RGBA')
+            for i in range(49):
+                if i not in wall_list[direction]:
+                    bg.paste(left, (0, i*pixs, pixs, i*pixs+pixs))
+        if direction == 'right':
+            right = Image.open(res_dir+'right.png').convert('RGBA')
+            for i in range(49):
+                if i not in wall_list[direction]:
+                    bg.paste(right, (49*pixs, i*pixs, 50*pixs, i*pixs+pixs))
 
-		for pos in rampart_list:
-			tmp = bg.crop((pos[0],pos[1],pos[0]+16,pos[1]+16)).convert('RGBA')
-			rampart=Image.open(res_dir+"rampart.png").convert("RGBA")
-			tmp.alpha_composite(rampart)
-			bg.paste(tmp,(pos[0],pos[1],pos[0]+16,pos[1]+16))
-			
-	ws.send('"unsubscribe room:'+shard+'/'+roomName+'"')
-	ws.close()
-	bg.save('./screeps-room-'+shard+'-'+roomName+'.png')
+    for obj in data['objects'].values():
+        if 'x' not in obj:
+            continue
+        if 'y' not in obj:
+            continue
+        if 'type' not in obj:
+            continue
+        structure = obj['type']
+        x = obj['x']*pixsxs
+        y = obj['y']*pixs
+        if structure == 'rampart':
+            rampart_list.append((x, y))
+            continue
+        if structure == 'extension':
+            tmp = bg.crop((x, y, x+pixs, y+pixs)).convert('RGBA')
+            if obj['store']['energy'] < obj['storeCapacityResource']['energy']/3:
+                structure_image = Image.open(
+                    res_dir+structure+"_empty.png").convert("RGBA")
+            else:
+                structure_image = Image.open(
+                    res_dir+structure+".png").convert("RGBA")
+            tmp.alpha_composite(structure_image)
+            bg.paste(tmp, (x, y, x+pixs, y+pixs))
+            continue
+        if structure == 'powerSpawn' or structure == 'factory':
+            size = pixs
+            real_size = 22
+            frame_size = real_size-size
+            tmp = bg.crop((x-frame_size//2, y-frame_size//2, x +
+                           pixs+frame_size//2, y+pixs+frame_size//2)).convert('RGBA')
+            structure_image = Image.open(
+                res_dir+structure+".png").convert("RGBA")
+            tmp.alpha_composite(structure_image)
+            bg.paste(tmp, (x-frame_size//2, y-frame_size//2,
+                           x+pixs+frame_size//2, y+pixs+frame_size//2))
+            continue
+        if structure == 'road':
+            road[x][y] = 1
+            structure_img = Image.open(
+                res_dir+structure+"_dot.png").convert('RGBA')
+            tmp = bg.crop((x, y, x+pixs, y+pixs)).convert('RGBA')
+            tmp.alpha_composite(structure_image)
+            bg.paste(tmp, (x, y, x+pixs, y+pixs))
 
+        if structure == 'mineral':
+            structure_image = Image.open(
+                res_dir+obj['mineralType']+".png").convert("RGBA")
+        else:
+            if structure+'.png' not in names:
+                continue
+            if (structure == 'tower' or structure == 'link') and obj['store']['energy'] < obj['storeCapacityResource']['energy']/3:
+                structure_image = Image.open(
+                    res_dir+structure+"_empty.png").convert("RGBA")
+            elif structure == 'nuker' and (obj['store']['energy'] < 270000 or obj['store']['G'] < 4500):
+                structure_image = Image.open(
+                    res_dir+structure+"_empty.png").convert("RGBA")
+            elif structure == 'source' and obj['energy'] == 0:
+                structure_image = Image.open(
+                    res_dir+structure+"_empty.png").convert("RGBA")
+            else:
+                structure_image = Image.open(
+                    res_dir+structure+".png").convert("RGBA")
+        bg.paste(structure_image,
+                 (x-structure_image.size[0]+pixs, y-structure_image.size[1]+pixs, x+pixs, y+pixs))
+    
+    for x in range(50):
+        for y in range(50):
+            if road[x][y] == 1:
+                if road[x - 1][y + 1] == 1:
+                    connection = Image.open(res_dir+structure+'_EN-WS.png').convert('RGBA')
+                    x0 = x - 0.5
+                    y0 = y + 0.5
+                if road[x][y + 1] == 1:
+                    connection = Image.open(res_dir+structure+'_N-S.png').convert('RGBA')
+                    x0 = x
+                    y0 = y + 0.5
+                if road[x + 1][y + 1] == 1:
+                    connection = Image.open(res_dir+structure+'_WN-ES.png').convert('RGBA')
+                    x0 = x + 0.5
+                    y0 = y + 0.5
+                if road[x + 1][y] == 1:
+                    connection = Image.open(res_dir+structure+'_W-E.png').convert('RGBA')
+                    x0 = x
+                    y0 = y - 0.5
+            pix_x = int(x0 * pixs)
+            pix_y = int(y0 * pixs)
+            tmp = bg.crop((pix_x, pix_y, pix_x + pixs, pix_y + pixs)).convert('RGBA')
+            tmp.alpha_composite(structure_image)
+            bg.paste(tmp, (pix_x, pix_y, pix_x + pixs, pix_y + pixs))
+
+    for pos in rampart_list:
+        tmp = bg.crop((pos[0], pos[1], pos[0]+pixs,
+                       pos[1]+pixs)).convert('RGBA')
+        rampart = Image.open(res_dir+"rampart.png").convert("RGBA")
+        tmp.alpha_composite(rampart)
+        bg.paste(tmp, (pos[0], pos[1], pos[0]+pixs, pos[1]+pixs))
+
+ws.send('"unsubscribe room:'+shard+'/'+roomName+'"')
+ws.close()
+bg.save('./screeps-room-'+shard+'-'+roomName+'.png')
