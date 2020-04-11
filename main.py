@@ -304,6 +304,7 @@ else:
             tmp = bg.crop((x, y, x+pixs, y+pixs)).convert('RGBA')
             tmp.alpha_composite(structure_image)
             bg.paste(tmp, (x, y, x+pixs, y+pixs))
+            continue
 
         if structure == 'mineral':
             structure_image = Image.open(
