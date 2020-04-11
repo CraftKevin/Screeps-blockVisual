@@ -338,8 +338,8 @@ else:
                     y0 = y + 0.5
                 if road[x + 1][y] == 1:
                     connection = Image.open(res_dir+'road_W-E.png').convert('RGBA')
-                    x0 = x
-                    y0 = y - 0.5
+                    x0 = x + 0.5
+                    y0 = y 
                 pix_x = int(x0 * pixs)
                 pix_y = int(y0 * pixs)
                 tmp = bg.crop((pix_x, pix_y, pix_x + pixs, pix_y + pixs)).convert('RGBA')
