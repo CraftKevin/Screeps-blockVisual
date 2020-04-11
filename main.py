@@ -111,11 +111,6 @@ if __name__=="__main__":
 	print('Login...')
 	time.sleep(0.5)
 
-# Default Token
-token = '[Your-Token]'
-# getToken()
-
-
 ws.send('["auth '+token+'"]')
 if ws.recv()[3:10] == 'auth ok':
     print('Token verify successfully')
@@ -213,7 +208,7 @@ else:
         if 'type' not in obj:
             continue
         structure = obj['type']
-        x = obj['x']*pixsxs
+        x = obj['x']*pixs
         y = obj['y']*pixs
         if structure == 'rampart':
             rampart_list.append((x, y))
@@ -242,7 +237,9 @@ else:
                            x+pixs+frame_size//2, y+pixs+frame_size//2))
             continue
         if structure == 'road':
-            road[x][y] = 1
+            print(str(obj['x'])+' '+str(obj['y']))
+            #print(road)
+            road[obj['x']][obj['y']] = 1
             structure_img = Image.open(
                 res_dir+structure+"_dot.png").convert('RGBA')
             tmp = bg.crop((x, y, x+pixs, y+pixs)).convert('RGBA')
@@ -258,7 +255,7 @@ else:
             if (structure == 'tower' or structure == 'link') and obj['store']['energy'] < obj['storeCapacityResource']['energy']/3:
                 structure_image = Image.open(
                     res_dir+structure+"_empty.png").convert("RGBA")
-            elif structure == 'nuker' and (obj['store']['energy'] < 270000 or obj['store']['G'] < 4500):
+            elif structure == 'nuker' and ('energy' not in obj['store'] or 'G' not in obj['store'] or obj['store']['energy'] != 300000 or obj['store']['G'] != 5000):
                 structure_image = Image.open(
                     res_dir+structure+"_empty.png").convert("RGBA")
             elif structure == 'source' and obj['energy'] == 0:
@@ -270,30 +267,38 @@ else:
         bg.paste(structure_image,
                  (x-structure_image.size[0]+pixs, y-structure_image.size[1]+pixs, x+pixs, y+pixs))
     
-    for x in range(50):
-        for y in range(50):
+    res_dir = './img/16x/'
+
+    #print(road)
+
+    for x in range(1,49):
+        for y in range(1,49):
+            print(str(road[x][y])+' ',end='')
             if road[x][y] == 1:
                 if road[x - 1][y + 1] == 1:
-                    connection = Image.open(res_dir+structure+'_EN-WS.png').convert('RGBA')
+                    connection = Image.open(res_dir+'road_EN-WS.png').convert('RGBA')
                     x0 = x - 0.5
                     y0 = y + 0.5
                 if road[x][y + 1] == 1:
-                    connection = Image.open(res_dir+structure+'_N-S.png').convert('RGBA')
+                    connection = Image.open(res_dir+'road_N-S.png').convert('RGBA')
                     x0 = x
                     y0 = y + 0.5
                 if road[x + 1][y + 1] == 1:
-                    connection = Image.open(res_dir+structure+'_WN-ES.png').convert('RGBA')
+                    connection = Image.open(res_dir+'road_WN-ES.png').convert('RGBA')
                     x0 = x + 0.5
                     y0 = y + 0.5
                 if road[x + 1][y] == 1:
-                    connection = Image.open(res_dir+structure+'_W-E.png').convert('RGBA')
+                    connection = Image.open(res_dir+'road_W-E.png').convert('RGBA')
                     x0 = x
                     y0 = y - 0.5
-            pix_x = int(x0 * pixs)
-            pix_y = int(y0 * pixs)
-            tmp = bg.crop((pix_x, pix_y, pix_x + pixs, pix_y + pixs)).convert('RGBA')
-            tmp.alpha_composite(structure_image)
-            bg.paste(tmp, (pix_x, pix_y, pix_x + pixs, pix_y + pixs))
+                pix_x = int(x0 * pixs)
+                pix_y = int(y0 * pixs)
+                tmp = bg.crop((pix_x, pix_y, pix_x + pixs, pix_y + pixs)).convert('RGBA')
+                tmp.alpha_composite(connection)
+                bg.paste(tmp, (pix_x, pix_y, pix_x + pixs, pix_y + pixs))
+        print()
+
+    res_dir = './img/'
 
     for pos in rampart_list:
         tmp = bg.crop((pos[0], pos[1], pos[0]+pixs,
