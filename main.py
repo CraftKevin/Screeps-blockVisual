@@ -242,7 +242,7 @@ else:
                            x+pixs+frame_size//2, y+pixs+frame_size//2))
             continue
         if structure == 'road':
-            road[x][y] = 1
+            road[round(x / pixs)][round(y / pixs)] = 1
             structure_img = Image.open(
                 res_dir+structure+"_dot.png").convert('RGBA')
             tmp = bg.crop((x, y, x+pixs, y+pixs)).convert('RGBA')
