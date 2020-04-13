@@ -1,18 +1,18 @@
 {
     "textures": {
-        "dot": "road_dot.png"
+        "factory": "factory.png"
     },
     "faces": [
         {
             "from": [
-                0,
-                0
+                -3,
+                -3
             ],
             "to": [
-                16,
-                16
+                19,
+                19
             ],
-            "texture": "dot",
+            "texture": "factory",
             "uv": [
                 0,
                 0,

@@ -1,18 +1,18 @@
 {
     "textures": {
-        "dot": "road_dot.png"
+        "mineral_L": "mineral_L.png"
     },
     "faces": [
         {
             "from": [
-                0,
-                0
+                -3,
+                -3
             ],
             "to": [
-                16,
-                16
+                19,
+                19
             ],
-            "texture": "dot",
+            "texture": "mineral_L",
             "uv": [
                 0,
                 0,

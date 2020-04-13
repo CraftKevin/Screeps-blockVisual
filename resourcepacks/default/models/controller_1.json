@@ -1,18 +1,18 @@
 {
     "textures": {
-        "dot": "road_dot.png"
+        "controller_1": "controller_1.png"
     },
     "faces": [
         {
             "from": [
-                0,
-                0
+                -3,
+                -3
             ],
             "to": [
-                16,
-                16
+                19,
+                19
             ],
-            "texture": "dot",
+            "texture": "controller_1",
             "uv": [
                 0,
                 0,
