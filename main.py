@@ -327,7 +327,7 @@ else:
             bg.paste(tmp, (x, y, x+pixs, y+pixs))
             continue
         if structure == 'controller':
-            bg = render('controller_' + obj['level'], bg, (x, y), pixs)
+            bg = render('controller_' + str(obj['level']), bg, (x, y), pixs)
             continue
         if structure == 'powerSpawn' or structure == 'factory':
             bg = render(structure, bg, (x, y), pixs)
