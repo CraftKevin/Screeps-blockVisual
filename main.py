@@ -208,7 +208,7 @@ else:
     res_dir = "./imgs/"
     rpname = 'default'
     pixs = 16
-    bg = Image.open('./resourcepacks' + rpname + 'bg.png').convert("RGBA")
+    bg = Image.open('./resourcepacks/' + rpname + '/textures/bg.png').convert("RGBA")
     rampart_list = []
     wall_list = {'up': [], 'down': [], 'left': [], 'right': []}
     files, names = getRawFileList(res_dir)
@@ -218,7 +218,7 @@ else:
     for i in range(50):
         row.append(0)
     for i in range(50):
-        road.append(row)
+        road.append(row[:])
     if 'ok' in roomTerrain:
         if roomTerrain['ok'] == 1:
             for terrain in roomTerrain['terrain']:
