@@ -206,8 +206,9 @@ except:
 else:
     # Render!
     res_dir = "./imgs/"
+    rpname = 'default'
     pixs = 16
-    bg = Image.open(res_dir+'bg.png').convert("RGBA")
+    bg = Image.open('./resourcepacks' + rpname + 'bg.png').convert("RGBA")
     rampart_list = []
     wall_list = {'up': [], 'down': [], 'left': [], 'right': []}
     files, names = getRawFileList(res_dir)
@@ -327,18 +328,18 @@ else:
             bg.paste(tmp, (x, y, x+pixs, y+pixs))
             continue
         if structure == 'controller':
-            bg = render('controller_' + str(obj['level']), bg, (x, y), pixs)
+            bg = render('controller_' + str(obj['level']), bg, (obj['x'], obj['y']), pixs)
             continue
         if structure == 'powerSpawn' or structure == 'factory':
-            bg = render(structure, bg, (x, y), pixs)
+            bg = render(structure, bg, (obj['x'], obj['y']), pixs)
             continue
 
         if structure == 'road':
             road[obj['x']][obj['y']] = 1
-            bg = render('road', bg, (x, y), pixs)
+            bg = render('road', bg, (obj['x'], obj['y']), pixs)
 
         elif structure == 'mineral':
-            bg = render('mineral_' + obj['mineralType'], bg, (x, y), pixs)
+            bg = render('mineral_' + obj['mineralType'], bg, (obj['x'], obj['y']), pixs)
         else:
             if structure+'.png' not in names:
                 continue
@@ -354,10 +355,9 @@ else:
             else:
                 structure_image = Image.open(
                     res_dir+structure+".png").convert("RGBA")
-        tmp = bg.crop((x-structure_image.size[0]+pixs, y-structure_image.size[1]+pixs, x+pixs, y+pixs))
-        tmp.alpha_composite(structure_image)
-        bg.paste(tmp,
-                 (x-structure_image.size[0]+pixs, y-structure_image.size[1]+pixs, x+pixs, y+pixs))
+            tmp = bg.crop((x-structure_image.size[0]+pixs, y-structure_image.size[1]+pixs, x+pixs, y+pixs))
+            tmp.alpha_composite(structure_image)
+            bg.paste(tmp, (x-structure_image.size[0]+pixs, y-structure_image.size[1]+pixs, x+pixs, y+pixs))
 
     res_dir = './resourcepacks/default/textures/'
 
