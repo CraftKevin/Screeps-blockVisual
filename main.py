@@ -225,9 +225,7 @@ else:
                 if terrain['type'] == 'wall' or terrain['type'] == 'swamp':
                     x = terrain['x']*pixs
                     y = terrain['y']*pixs
-                    terrain_image = Image.open(
-                        res_dir+terrain['type']+".png").convert("RGBA")
-                    bg.paste(terrain_image, (x, y, x+pixs, y+pixs))
+                    bg = render(terrain['type'], bg, (terrain['x'], terrain['y']), pixs)
                 if terrain['x'] == 0:
                     wall_list['left'].append(terrain['y'])
                 if terrain['x'] == 49:

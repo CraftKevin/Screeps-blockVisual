@@ -1,0 +1,24 @@
+{
+    "textures": {
+        "swamp": "swamp.png"
+    },
+    "faces": [
+        {
+            "from": [
+                0,
+                0
+            ],
+            "to": [
+                16,
+                16
+            ],
+            "texture": "swamp",
+            "uv": [
+                0,
+                0,
+                16,
+                16
+            ]
+        }
+    ]
+}
