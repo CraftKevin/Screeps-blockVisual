@@ -83,6 +83,59 @@ def setMemory(mempath,mem,token):
 	except:
 		return False
 
+def render(name, background, pos, size, dir: str = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'resourcepacks', 'default')):
+    """pos is Obj.pos"""
+    bg = background
+    mddir = os.path.join(dir, 'models')
+    txdir = os.path.join(dir, 'textures')
+    x, y = pos
+    try:
+        with open(os.path.join(mddir, name + '.json')) as model_file:
+            model = model_file.read()
+            model = json.loads(model)
+            textures = model['textures']
+            faces = model['faces']
+            render_rect = [-1, -1, -1, -1]
+            for face in faces:
+                if render_rect[0] == -1:
+                    render_rect[0] = face['from'][0]
+                else:
+                    render_rect[0] = min(render_rect[0], face['from'][0])
+                if render_rect[1] == -1:
+                    render_rect[1] = face['from'][1]
+                else:
+                    render_rect[1] = min(render_rect[1], face['from'][1])
+                if render_rect[2] == -1:
+                    render_rect[2] = face['to'][0]
+                else:
+                    render_rect[2] = max(render_rect[2], face['to'][0])
+                if render_rect[3] == -1:
+                    render_rect[3] = face['to'][1]
+                else:
+                    render_rect[3] = max(render_rect[3], face['to'][1])
+            render_rect[0] = int((render_rect[0] / 16.0 + x) * size)
+            render_rect[1] = int((render_rect[1] / 16.0 + y) * size)
+            render_rect[2] = int((render_rect[2] / 16.0 + x) * size)
+            render_rect[3] = int((render_rect[3] / 16.0 + y) * size)
+            img = Image.new('RGBA', (render_rect[2] - render_rect[0], render_rect[3] - render_rect[1]))
+            raw_img = Image.open(os.path.join(txdir, textures[face['texture']])).convert('RGBA')
+            w, h = img.size
+            r_w, r_h = raw_img.size
+            pix = img.load()
+            r_pix = raw_img.load()
+            for x in range(w):
+                for y in range(h):
+                    rx = int((face['uv'][0] * (w - x) / w + face['uv'][2] * x / w) / 16.0 * r_w)
+                    ry = int((face['uv'][1] * (h - y) / h + face['uv'][3] * y / h) / 16.0 * r_h)
+                    pix[x, y] = r_pix[rx, ry]
+    except:
+        print("Render Error:\tModel <", name, "> not found. ")
+        return 0
+    tmp = bg.crop(render_rect).convert('RGBA')
+    tmp.alpha_composite(img)
+    bg.paste(tmp, render_rect)
+    return bg
+
 if __name__=="__main__":
 	rawConfig=''
 	with open('config.json','r')as f:
@@ -273,7 +326,7 @@ else:
             tmp.alpha_composite(structure_image)
             bg.paste(tmp, (x, y, x+pixs, y+pixs))
             continue
-        if structure=='controller':
+        if structure == 'controller':
             if obj['level']:
                 size = pixs
                 real_size=22
@@ -297,16 +350,16 @@ else:
             bg.paste(tmp, (x-frame_size//2, y-frame_size//2,
                            x+pixs+frame_size//2, y+pixs+frame_size//2))
             continue
+
         if structure == 'road':
             road[obj['x']][obj['y']] = 1
-            structure_img = Image.open(
+            structure_image = Image.open(
                 res_dir+structure+"_dot.png").convert('RGBA')
             tmp = bg.crop((x, y, x+pixs, y+pixs)).convert('RGBA')
             tmp.alpha_composite(structure_image)
             bg.paste(tmp, (x, y, x+pixs, y+pixs))
-            continue
 
-        if structure == 'mineral':
+        elif structure == 'mineral':
             structure_image = Image.open(
                 res_dir+obj['mineralType']+".png").convert("RGBA")
         else:
@@ -324,9 +377,11 @@ else:
             else:
                 structure_image = Image.open(
                     res_dir+structure+".png").convert("RGBA")
-        bg.paste(structure_image,
+        tmp = bg.crop((x-structure_image.size[0]+pixs, y-structure_image.size[1]+pixs, x+pixs, y+pixs))
+        tmp.alpha_composite(structure_image)
+        bg.paste(tmp,
                  (x-structure_image.size[0]+pixs, y-structure_image.size[1]+pixs, x+pixs, y+pixs))
-    
+
     res_dir = './imgs/16x/'
 
     for x in range(1,49):
