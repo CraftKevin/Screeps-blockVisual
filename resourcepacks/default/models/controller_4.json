@@ -1,0 +1,24 @@
+{
+    "textures": {
+        "controller_4": "controller_4.png"
+    },
+    "faces": [
+        {
+            "from": [
+                -3,
+                -3
+            ],
+            "to": [
+                19,
+                19
+            ],
+            "texture": "controller_4",
+            "uv": [
+                0,
+                0,
+                16,
+                16
+            ]
+        }
+    ]
+}

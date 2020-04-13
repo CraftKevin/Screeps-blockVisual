@@ -1,0 +1,24 @@
+{
+    "textures": {
+        "mineral_H": "mineral_H.png"
+    },
+    "faces": [
+        {
+            "from": [
+                -3,
+                -3
+            ],
+            "to": [
+                19,
+                19
+            ],
+            "texture": "mineral_H",
+            "uv": [
+                0,
+                0,
+                16,
+                16
+            ]
+        }
+    ]
+}

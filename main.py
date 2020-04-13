@@ -327,32 +327,18 @@ else:
             bg.paste(tmp, (x, y, x+pixs, y+pixs))
             continue
         if structure == 'controller':
-            if obj['level']:
-                size = pixs
-                real_size=22
-                frame_size=real_size-size
-                tmp = bg.crop((x-frame_size//2,y-frame_size//2,x+
-                               16+frame_size//2,y+16+frame_size//2)).convert('RGBA')
-                structure_image=Image.open(res_dir+'rcl'+str(obj['level'])+".png").convert("RGBA")
-                tmp.alpha_composite(structure_image)
-                bg.paste(tmp,(x-frame_size//2,y-frame_size//2,
-                         x+16+frame_size//2,y+16+frame_size//2))
-                continue
+            bg = render('controller_' + obj['level'], bg, (x, y), pixs)
+            continue
         if structure == 'powerSpawn' or structure == 'factory':
             bg = render(structure, bg, (x, y), pixs)
             continue
 
         if structure == 'road':
             road[obj['x']][obj['y']] = 1
-            structure_image = Image.open(
-                res_dir+structure+"_dot.png").convert('RGBA')
-            tmp = bg.crop((x, y, x+pixs, y+pixs)).convert('RGBA')
-            tmp.alpha_composite(structure_image)
-            bg.paste(tmp, (x, y, x+pixs, y+pixs))
+            bg = render('road', bg, (x, y), pixs)
 
         elif structure == 'mineral':
-            structure_image = Image.open(
-                res_dir+obj['mineralType']+".png").convert("RGBA")
+            bg = render('mineral_' + obj['mineralType'], bg, (x, y), pixs)
         else:
             if structure+'.png' not in names:
                 continue
