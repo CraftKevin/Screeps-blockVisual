@@ -339,16 +339,7 @@ else:
                          x+16+frame_size//2,y+16+frame_size//2))
                 continue
         if structure == 'powerSpawn' or structure == 'factory':
-            size = pixs
-            real_size = 22
-            frame_size = real_size-size
-            tmp = bg.crop((x-frame_size//2, y-frame_size//2, x +
-                           pixs+frame_size//2, y+pixs+frame_size//2)).convert('RGBA')
-            structure_image = Image.open(
-                res_dir+structure+".png").convert("RGBA")
-            tmp.alpha_composite(structure_image)
-            bg.paste(tmp, (x-frame_size//2, y-frame_size//2,
-                           x+pixs+frame_size//2, y+pixs+frame_size//2))
+            bg = render(structure, bg, (x, y), pixs)
             continue
 
         if structure == 'road':
@@ -382,7 +373,7 @@ else:
         bg.paste(tmp,
                  (x-structure_image.size[0]+pixs, y-structure_image.size[1]+pixs, x+pixs, y+pixs))
 
-    res_dir = './imgs/16x/'
+    res_dir = './resourcepacks/default/textures/'
 
     for x in range(1,49):
         for y in range(1,49):
